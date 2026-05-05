@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GESTOR FINANCEIRO PRO V2.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .card { @apply bg-white p-5 rounded-2xl shadow-sm border border-slate-200 transition-all; }
+        
+        /* Ajuste de Botões para Desktop e Mobile */
+        .nav-container { @apply flex bg-white rounded-xl shadow-sm border p-1 gap-1 w-full md:w-auto; }
+        .btn-tab { @apply flex-1 md:flex-none px-4 py-2.5 font-bold text-[10px] md:text-xs text-slate-500 transition-all rounded-lg border-none; }
+        .btn-tab.active { @apply bg-indigo-50 text-indigo-600 shadow-sm; }
+        .btn-add { @apply bg-indigo-600 !text-white hover:bg-indigo-700 shadow-md; }
+        
+        .input-style { @apply w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none mb-3 bg-slate-50; }
+        .badge-pendente { @apply bg-rose-100 text-rose-600 px-2 py-1 rounded-md text-[10px] font-black uppercase; }
+        .badge-em-dia { @apply bg-emerald-100 text-emerald-600 px-2 py-1 rounded-md text-[10px] font-black uppercase; }
+    </style>
+</head>
+<body class="p-3 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Ajustado -->
+        <div class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-6">
+            <div class="text-center lg:text-left">
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900">GESTOR FINANCEIRO PRO</h1>
+                <p class="text-slate-500 text-sm font-medium">Controle de Fluxo e Datas de Empréstimo</p>
+            </div>
+            
+            <div class="nav-container">
+                <button onclick="showTab('dash')" id="tab-dash" class="btn-tab active">DASHBOARD</button>
+                <button onclick="showTab('manage')" id="tab-manage" class="btn-tab">BAIXA</button>
+                <button onclick="showTab('add')" id="tab-add" class="btn-tab btn-add"> + NOVO CLIENTE</button>
+            </div>
+        </div>
+
+        <div id="view-dash" class="space-y-6">
+            <!-- KPIs -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                <div class="card bg-indigo-600 text-white border-none shadow-lg">
+                    <p class="text-[9px] md:text-[10px] font-bold opacity-80 uppercase tracking-widest">Saldo Total</p>
+                    <h2 id="kpi-total-falta" class="text-lg md:text-2xl font-black mt-1">R$ 0,00</h2>
+                </div>
+                <div class="card border-t-4 border-amber-500">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Este Mês</p>
+                    <h2 id="kpi-mes-atual" class="text-lg md:text-2xl font-black text-amber-600 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="card border-t-4 border-rose-500">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pendentes</p>
+                    <h2 id="kpi-pendentes-count" class="text-lg md:text-2xl font-black text-rose-600 mt-1">0</h2>
+                </div>
+                <div class="card border-t-4 border-emerald-500">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Já Recebido</p>
+                    <h2 id="kpi-pago-total" class="text-lg md:text-2xl font-black text-emerald-600 mt-1">R$ 0,00</h2>
+                </div>
+            </div>
+
+            <div class="card overflow-hidden">
+                <h3 class="font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+                    <i data-lucide="list-ordered" class="text-indigo-600 w-5 h-5"></i> TABELA DE COBRANÇAS
+                </h3>
+                <div class="overflow-x-auto -mx-5 px-5">
+                    <table class="w-full text-left min-w-[700px]">
+                        <thead>
+                            <tr class="text-[11px] text-slate-400 uppercase border-b pb-4">
+                                <th class="pb-3">Cliente</th>
+                                <th class="pb-3">Pegou em</th>
+                                <th class="pb-3">Parcela</th>
+                                <th class="pb-3 text-center">Faltam</th>
+                                <th class="pb-3">Status</th>
+                                <th class="pb-3 text-indigo-600">Saldo</th>
+                                <th class="pb-3">Próximo Venc.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableDash" class="divide-y text-sm font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-manage" class="hidden space-y-4">
+            <div id="manageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
+        </div>
+
+        <div id="view-add" class="hidden">
+            <div class="card max-w-lg mx-auto shadow-xl">
+                <h3 class="text-xl font-black mb-6 flex items-center gap-2">
+                    <i data-lucide="user-plus" class="text-indigo-600"></i> Novo Registro
+                </h3>
+                <label class="text-xs font-bold text-slate-400 uppercase">Nome da Cliente</label>
+                <input type="text" id="new-nome" class="input-style" placeholder="Nome Completo">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Valor Parcela</label>
+                        <input type="number" id="new-vlr" class="input-style" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Total Parcelas</label>
+                        <input type="number" id="new-parc" class="input-style" placeholder="Ex: 4">
+                    </div>
+                </div>
+
+                <label class="text-xs font-bold text-slate-400 uppercase">Data que Pegou (Início)</label>
+                <input type="date" id="new-venc" class="input-style">
+
+                <button onclick="adicionarCliente()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl mt-4 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
+                    CADASTRAR EMPRÉSTIMO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let db = [];
+
+        async function save() {
+            const r = await fetch('/api/loans', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(db)
+            });
+            if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                throw new Error(err.error || 'Não foi possível salvar no servidor');
+            }
+        }
+
+        async function loadDb() {
+            const r = await fetch('/api/loans');
+            if (!r.ok) throw new Error('Não foi possível carregar os dados');
+            db = await r.json();
+            if (!Array.isArray(db)) db = [];
+            if (db.length === 0) {
+                const legacy = localStorage.getItem('loan_db_v2_1');
+                if (legacy) {
+                    try {
+                        const parsed = JSON.parse(legacy);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            db = parsed;
+                            await save();
+                            localStorage.removeItem('loan_db_v2_1');
+                        }
+                    } catch (_) { /* ignore */ }
+                }
+            }
+        }
+
+        // Formatação de data amigável
+        function formatBr(date) {
+            if (!date) return '---';
+            return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
+        }
+
+        function calcularProximoVencimento(dataInicialStr, parcelasTotais, parcelasFaltando) {
+            if (parcelasFaltando <= 0) return null;
+            const parcelasPagas = parcelasTotais - parcelasFaltando;
+            let data = new Date(dataInicialStr + 'T00:00:00');
+            data.setMonth(data.getMonth() + parcelasPagas);
+            return data;
+        }
+
+        function render() {
+            const tableDash = document.getElementById('tableDash');
+            const manageGrid = document.getElementById('manageGrid');
+            tableDash.innerHTML = '';
+            manageGrid.innerHTML = '';
+
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+            
+            let totalFalta = 0, totalPago = 0, totalMes = 0, pendentes = 0;
+
+            db.forEach(item => {
+                const proxVenc = calcularProximoVencimento(item.vencOriginal, item.parcelasTotais, item.faltam);
+                const saldo = item.vlrParc * item.faltam;
+                totalFalta += saldo;
+                totalPago += (item.original - saldo);
+
+                let isPendente = proxVenc && proxVenc < hoje && item.faltam > 0;
+                if(isPendente) pendentes++;
+                if(proxVenc && proxVenc.getMonth() === hoje.getMonth() && proxVenc.getFullYear() === hoje.getFullYear()) {
+                    totalMes += item.vlrParc;
+                }
+
+                if(item.faltam > 0) {
+                    tableDash.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-4 font-bold text-slate-800">${item.nome}</td>
+                            <td class="py-4 text-slate-400">${formatBr(item.vencOriginal)}</td>
+                            <td class="py-4 text-slate-500 font-bold">R$ ${item.vlrParc.toFixed(2)}</td>
+                            <td class="py-4 text-center font-extrabold text-slate-700">${item.faltam}</td>
+                            <td class="py-4">${isPendente ? '<span class="badge-pendente">Atrasado</span>' : '<span class="badge-em-dia">Em dia</span>'}</td>
+                            <td class="py-4 font-black text-indigo-600">R$ ${saldo.toFixed(2)}</td>
+                            <td class="py-4 ${isPendente ? 'text-rose-500' : 'text-slate-500'} font-bold">${proxVenc ? proxVenc.toLocaleDateString('pt-BR') : '---'}</td>
+                        </tr>
+                    `;
+                }
+
+                manageGrid.innerHTML += `
+                    <div class="card ${isPendente ? 'border-rose-200 ring-1 ring-rose-100' : ''}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-black text-slate-800 text-lg">${item.nome}</h4>
+                            ${isPendente ? '<span class="badge-pendente animate-pulse">Pagar Agora</span>' : ''}
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
+                            <button onclick="changeParc(${item.id}, -1)" class="w-12 h-12 bg-rose-500 text-white rounded-xl font-black shadow-lg shadow-rose-100 active:scale-95">-</button>
+                            <div class="text-center">
+                                <span class="block text-[10px] text-slate-400 font-bold uppercase">Restantes</span>
+                                <span class="font-black text-3xl text-slate-800">${item.faltam}</span>
+                            </div>
+                            <button onclick="changeParc(${item.id}, 1)" class="w-12 h-12 bg-emerald-500 text-white rounded-xl font-black shadow-lg shadow-emerald-100 active:scale-95">+</button>
+                        </div>
+                        <div class="space-y-1 text-[11px] font-bold text-slate-400 uppercase">
+                            <div class="flex justify-between"><span>Início:</span> <span class="text-slate-600">${formatBr(item.vencOriginal)}</span></div>
+                            <div class="flex justify-between"><span>Próxima:</span> <span class="${isPendente ? 'text-rose-500' : 'text-indigo-500'}">${proxVenc ? proxVenc.toLocaleDateString('pt-BR') : 'Finalizado'}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('kpi-total-falta').innerText = `R$ ${totalFalta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-mes-atual').innerText = `R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-pendentes-count').innerText = pendentes;
+            document.getElementById('kpi-pago-total').innerText = `R$ ${totalPago.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            lucide.createIcons();
+        }
+
+        async function adicionarCliente() {
+            const nome = document.getElementById('new-nome').value;
+            const vlr = parseFloat(document.getElementById('new-vlr').value);
+            const parc = parseInt(document.getElementById('new-parc').value);
+            const venc = document.getElementById('new-venc').value;
+            if(!nome || isNaN(vlr) || !venc) return alert("Preencha os campos corretamente!");
+            db.push({ id: Date.now(), nome, vlrParc: vlr, faltam: parc, parcelasTotais: parc, vencOriginal: venc, original: (vlr * parc) });
+            try {
+                await save();
+            } catch (e) {
+                db.pop();
+                return alert(e.message || String(e));
+            }
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            showTab('dash');
+        }
+
+        async function changeParc(id, delta) {
+            const idx = db.findIndex(i => i.id === id);
+            if (idx === -1) return;
+            const prev = db[idx].faltam;
+            db[idx].faltam = Math.max(0, db[idx].faltam + delta);
+            try {
+                await save();
+            } catch (e) {
+                db[idx].faltam = prev;
+                return alert(e.message || String(e));
+            }
+            render();
+        }
+
+        function showTab(tab) {
+            ['dash', 'manage', 'add'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            render();
+        }
+
+        (async function init() {
+            try {
+                await loadDb();
+            } catch (e) {
+                alert('Erro ao conectar ao servidor: ' + (e.message || e) + '\n\nInicie com: npm start na pasta do projeto.');
+                return;
+            }
+            render();
+        })();
+    </script>
+</body>
+</html>

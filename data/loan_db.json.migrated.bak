@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1778023813634,
+    "nome": "Luis",
+    "vlrParc": 1000,
+    "faltam": 4,
+    "parcelasTotais": 4,
+    "vencOriginal": "2026-04-10",
+    "original": 4000
+  },
+  {
+    "id": 1778023906196,
+    "nome": "Fernando",
+    "vlrParc": 500,
+    "faltam": 2,
+    "parcelasTotais": 2,
+    "vencOriginal": "2026-05-05",
+    "original": 1000
+  }
+]

@@ -6,10 +6,19 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "cf:dev": "wrangler pages dev public",
+    "cf:deploy": "wrangler pages deploy public",
+    "cf:d1:create": "wrangler d1 create fernando",
+    "cf:d1:migrate": "wrangler d1 migrations apply fernando --remote",
+    "cf:d1:migrate:local": "wrangler d1 migrations apply fernando --local"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^3.99.0"
   }
 }

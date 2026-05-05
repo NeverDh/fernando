@@ -278,7 +278,7 @@
             try {
                 await loadDb();
             } catch (e) {
-                alert('Erro ao conectar ao servidor: ' + (e.message || e) + '\n\nInicie com: npm start na pasta do projeto.');
+                alert('Erro ao conectar à API: ' + (e.message || e) + '\n\nLocal: npm start. Cloudflare: npm run cf:dev ou verifique D1 + deploy.');
                 return;
             }
             render();

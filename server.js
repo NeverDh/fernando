@@ -95,6 +95,7 @@ function migrateFromJsonIfNeeded() {
 migrateFromJsonIfNeeded();
 
 const app = express();
+const PUBLIC_DIR = path.join(ROOT, 'public');
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/api/loans', (req, res) => {
@@ -120,10 +121,10 @@ app.put('/api/loans', (req, res) => {
   }
 });
 
-app.use(express.static(ROOT));
+app.use(express.static(PUBLIC_DIR));
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(ROOT, 'gemini-code-1777989653780.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {

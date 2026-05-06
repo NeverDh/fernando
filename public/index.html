@@ -8,111 +8,223 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .card { @apply bg-white p-5 rounded-2xl shadow-sm border border-slate-200 transition-all; }
-        
-        /* Ajuste de Botões para Desktop e Mobile */
-        .nav-container { @apply flex bg-white rounded-xl shadow-sm border p-1 gap-1 w-full md:w-auto; }
-        .btn-tab { @apply flex-1 md:flex-none px-4 py-2.5 font-bold text-[10px] md:text-xs text-slate-500 transition-all rounded-lg border-none; }
-        .btn-tab.active { @apply bg-indigo-50 text-indigo-600 shadow-sm; }
-        .btn-add { @apply bg-indigo-600 !text-white hover:bg-indigo-700 shadow-md; }
-        
-        .input-style { @apply w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none mb-3 bg-slate-50; }
-        .badge-pendente { @apply bg-rose-100 text-rose-600 px-2 py-1 rounded-md text-[10px] font-black uppercase; }
-        .badge-em-dia { @apply bg-emerald-100 text-emerald-600 px-2 py-1 rounded-md text-[10px] font-black uppercase; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
 </head>
-<body class="p-3 md:p-8">
+<body class="min-h-screen antialiased selection:bg-indigo-100 selection:text-indigo-950 text-slate-800 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100/90 via-slate-50 to-violet-100/60">
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Header Ajustado -->
-        <div class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-6">
-            <div class="text-center lg:text-left">
-                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900">GESTOR FINANCEIRO PRO</h1>
-                <p class="text-slate-500 text-sm font-medium">Controle de Fluxo e Datas de Empréstimo</p>
-            </div>
-            
-            <div class="nav-container">
-                <button onclick="showTab('dash')" id="tab-dash" class="btn-tab active">DASHBOARD</button>
-                <button onclick="showTab('manage')" id="tab-manage" class="btn-tab">BAIXA</button>
-                <button onclick="showTab('add')" id="tab-add" class="btn-tab btn-add"> + NOVO CLIENTE</button>
-            </div>
-        </div>
+    <div class="mx-auto max-w-7xl px-3 py-6 sm:px-5 md:py-10">
+        <!-- Shell -->
+        <div class="rounded-[1.75rem] border border-white/70 bg-white/70 p-5 shadow-xl shadow-indigo-950/5 backdrop-blur-xl md:p-8 lg:p-10">
 
-        <div id="view-dash" class="space-y-6">
-            <!-- KPIs -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                <div class="card bg-indigo-600 text-white border-none shadow-lg">
-                    <p class="text-[9px] md:text-[10px] font-bold opacity-80 uppercase tracking-widest">Saldo Total</p>
-                    <h2 id="kpi-total-falta" class="text-lg md:text-2xl font-black mt-1">R$ 0,00</h2>
-                </div>
-                <div class="card border-t-4 border-amber-500">
-                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Este Mês</p>
-                    <h2 id="kpi-mes-atual" class="text-lg md:text-2xl font-black text-amber-600 mt-1">R$ 0,00</h2>
-                </div>
-                <div class="card border-t-4 border-rose-500">
-                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pendentes</p>
-                    <h2 id="kpi-pendentes-count" class="text-lg md:text-2xl font-black text-rose-600 mt-1">0</h2>
-                </div>
-                <div class="card border-t-4 border-emerald-500">
-                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Já Recebido</p>
-                    <h2 id="kpi-pago-total" class="text-lg md:text-2xl font-black text-emerald-600 mt-1">R$ 0,00</h2>
-                </div>
-            </div>
-
-            <div class="card overflow-hidden">
-                <h3 class="font-extrabold text-slate-800 mb-6 flex items-center gap-2">
-                    <i data-lucide="list-ordered" class="text-indigo-600 w-5 h-5"></i> TABELA DE COBRANÇAS
-                </h3>
-                <div class="overflow-x-auto -mx-5 px-5">
-                    <table class="w-full text-left min-w-[700px]">
-                        <thead>
-                            <tr class="text-[11px] text-slate-400 uppercase border-b pb-4">
-                                <th class="pb-3">Cliente</th>
-                                <th class="pb-3">Pegou em</th>
-                                <th class="pb-3">Parcela</th>
-                                <th class="pb-3 text-center">Faltam</th>
-                                <th class="pb-3">Status</th>
-                                <th class="pb-3 text-indigo-600">Saldo</th>
-                                <th class="pb-3">Próximo Venc.</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableDash" class="divide-y text-sm font-medium"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-manage" class="hidden space-y-4">
-            <div id="manageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
-        </div>
-
-        <div id="view-add" class="hidden">
-            <div class="card max-w-lg mx-auto shadow-xl">
-                <h3 class="text-xl font-black mb-6 flex items-center gap-2">
-                    <i data-lucide="user-plus" class="text-indigo-600"></i> Novo Registro
-                </h3>
-                <label class="text-xs font-bold text-slate-400 uppercase">Nome da Cliente</label>
-                <input type="text" id="new-nome" class="input-style" placeholder="Nome Completo">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Valor Parcela</label>
-                        <input type="number" id="new-vlr" class="input-style" placeholder="0.00">
+            <!-- Topo -->
+            <header class="mb-10 flex flex-col gap-8 lg:mb-12 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
+                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-300/40 ring-4 ring-white">
+                        <i data-lucide="landmark" class="h-7 w-7"></i>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Total Parcelas</label>
-                        <input type="number" id="new-parc" class="input-style" placeholder="Ex: 4">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-600/90">Gestão de crédito</p>
+                        <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">Gestor financeiro <span class="text-indigo-600">Pro</span></h1>
+                        <p class="mt-1.5 max-w-md text-sm font-medium leading-relaxed text-slate-500">Parcelas, vencimentos e baixa num só lugar.</p>
                     </div>
                 </div>
 
-                <label class="text-xs font-bold text-slate-400 uppercase">Data que Pegou (Início)</label>
-                <input type="date" id="new-venc" class="input-style">
+                <nav class="flex w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/90 p-1.5 shadow-inner shadow-slate-200/50 backdrop-blur-sm md:w-auto md:flex-nowrap" aria-label="Seções">
+                    <button type="button" onclick="showTab('dash')" id="tab-dash" class="btn-tab active flex min-h-[44px] flex-1 items-center justify-center rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 md:flex-none md:text-xs">
+                        <i data-lucide="layout-dashboard" class="mr-1.5 hidden h-4 w-4 sm:inline"></i> Dashboard
+                    </button>
+                    <button type="button" onclick="showTab('manage')" id="tab-manage" class="btn-tab flex min-h-[44px] flex-1 items-center justify-center rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 md:flex-none md:text-xs">
+                        <i data-lucide="coins" class="mr-1.5 hidden h-4 w-4 sm:inline"></i> Baixa
+                    </button>
+                    <button type="button" onclick="showTab('add')" id="tab-add" class="flex min-h-[44px] flex-1 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-[10px] font-black uppercase tracking-wide text-white shadow-md shadow-indigo-300/40 transition hover:from-indigo-500 hover:to-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 md:flex-none md:text-xs">
+                        <i data-lucide="plus" class="mr-1 h-4 w-4"></i> Novo
+                    </button>
+                </nav>
+            </header>
 
-                <button onclick="adicionarCliente()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl mt-4 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
-                    CADASTRAR EMPRÉSTIMO
-                </button>
+            <!-- Dashboard -->
+            <div id="view-dash" class="space-y-8">
+                <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
+                    <article class="group relative overflow-hidden rounded-2xl border border-indigo-200/50 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-5 text-white shadow-lg shadow-indigo-400/25 ring-1 ring-white/10 transition hover:shadow-xl hover:shadow-indigo-400/30">
+                        <i data-lucide="wallet" class="absolute -right-2 -top-2 h-24 w-24 text-white/10 transition group-hover:scale-105"></i>
+                        <p class="relative text-[10px] font-bold uppercase tracking-widest text-white/75">Saldo total</p>
+                        <p id="kpi-total-falta" class="relative mt-2 text-xl font-black tabular-nums md:text-2xl">R$ 0,00</p>
+                    </article>
+                    <article class="rounded-2xl border border-amber-100/80 bg-white p-5 shadow-md shadow-amber-100/40 ring-1 ring-amber-50 transition hover:border-amber-200 hover:shadow-lg">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-600/80">Este mês</p>
+                            <span class="rounded-lg bg-amber-50 p-2 text-amber-600"><i data-lucide="calendar-days" class="h-4 w-4"></i></span>
+                        </div>
+                        <p id="kpi-mes-atual" class="mt-3 text-xl font-black tabular-nums text-amber-700 md:text-2xl">R$ 0,00</p>
+                    </article>
+                    <article class="rounded-2xl border border-rose-100/80 bg-white p-5 shadow-md shadow-rose-100/40 ring-1 ring-rose-50 transition hover:border-rose-200 hover:shadow-lg">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-rose-600/80">Pendentes</p>
+                            <span class="rounded-lg bg-rose-50 p-2 text-rose-600"><i data-lucide="alarm-clock" class="h-4 w-4"></i></span>
+                        </div>
+                        <p id="kpi-pendentes-count" class="mt-3 text-xl font-black tabular-nums text-rose-600 md:text-2xl">0</p>
+                    </article>
+                    <article class="rounded-2xl border border-emerald-100/80 bg-white p-5 shadow-md shadow-emerald-100/40 ring-1 ring-emerald-50 transition hover:border-emerald-200 hover:shadow-lg">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600/80">Já recebido</p>
+                            <span class="rounded-lg bg-emerald-50 p-2 text-emerald-600"><i data-lucide="circle-check" class="h-4 w-4"></i></span>
+                        </div>
+                        <p id="kpi-pago-total" class="mt-3 text-xl font-black tabular-nums text-emerald-700 md:text-2xl">R$ 0,00</p>
+                    </article>
+                </div>
+
+                <section class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-lg shadow-slate-200/40 ring-1 ring-slate-100">
+                    <div class="flex flex-col gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-indigo-50/30 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-inner shadow-indigo-100">
+                                <i data-lucide="list-ordered" class="h-5 w-5"></i>
+                            </span>
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900">Cobranças</h2>
+                                <p class="text-xs font-medium text-slate-500">Em dia, atrasadas ou quitadas — ações à direita.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[880px] text-left">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/95 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="whitespace-nowrap px-4 py-3.5 pl-5">Cliente</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5">Pegou em</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5">Parcela</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5 text-center">Faltam</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5">Status</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5 text-indigo-600">Saldo</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5">Próx. venc.</th>
+                                    <th class="whitespace-nowrap px-4 py-3.5 pr-5 text-right text-slate-400">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableDash" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                    <div id="tableDash-empty" class="hidden flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+                        <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                            <i data-lucide="inbox" class="h-8 w-8"></i>
+                        </span>
+                        <p class="max-w-xs text-sm font-medium text-slate-500">Nenhum empréstimo ainda. Use <span class="font-bold text-indigo-600">+ Novo</span> para começar.</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Baixa -->
+            <div id="view-manage" class="hidden space-y-6">
+                <div class="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/90 to-violet-50/50 px-4 py-3.5 text-sm text-indigo-950 shadow-sm ring-1 ring-indigo-100/80">
+                    <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                        <i data-lucide="lightbulb" class="h-4 w-4"></i>
+                    </span>
+                    <p class="font-medium leading-snug text-indigo-900/90"><span class="font-bold">Dica:</span> use +/− para baixa rápida ou abra <span class="font-semibold">Editar</span> para corrigir valores e datas.</p>
+                </div>
+                <div id="manageGrid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"></div>
+            </div>
+
+            <!-- Novo -->
+            <div id="view-add" class="hidden">
+                <div class="mx-auto max-w-lg rounded-2xl border border-indigo-100/90 bg-white p-6 shadow-xl shadow-indigo-200/30 ring-1 ring-indigo-50 sm:p-8">
+                    <div class="mb-8 flex items-center gap-4">
+                        <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-300/40">
+                            <i data-lucide="user-plus" class="h-7 w-7"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900">Novo registro</h2>
+                            <p class="text-sm text-slate-500">Preencha os dados do empréstimo.</p>
+                        </div>
+                    </div>
+                    <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Nome da cliente</label>
+                    <input type="text" id="new-nome" class="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm font-medium text-slate-800 shadow-inner shadow-slate-100 placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" placeholder="Nome completo">
+
+                    <div class="mb-4 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Valor parcela</label>
+                            <input type="number" id="new-vlr" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm font-medium focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" placeholder="0,00" step="0.01">
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Total parcelas</label>
+                            <input type="number" id="new-parc" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm font-medium focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" placeholder="Ex: 4" min="1">
+                        </div>
+                    </div>
+
+                    <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Data que pegou (início)</label>
+                    <input type="date" id="new-venc" class="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm font-medium focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25">
+
+                    <button type="button" onclick="adicionarCliente()" class="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-4 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-indigo-300/40 transition hover:from-indigo-500 hover:to-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                        Cadastrar empréstimo
+                    </button>
+                </div>
+            </div>
+
+            <footer class="mt-12 border-t border-slate-200/80 pt-8 text-center text-[11px] font-medium text-slate-400">
+                Gestor Financeiro Pro · v2.1
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal editar -->
+    <div id="modal-edit" class="fixed inset-0 z-[100] hidden p-0 sm:p-4 bg-slate-950/55 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
+        <div class="relative w-full max-h-[90vh] overflow-y-auto rounded-t-[1.75rem] border border-slate-200/90 bg-white shadow-2xl sm:max-w-md sm:rounded-3xl" onclick="event.stopPropagation()">
+            <div class="h-1.5 w-full rounded-t-[1.75rem] bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 sm:rounded-t-3xl"></div>
+            <div class="p-6 sm:p-8">
+                <div class="mb-6 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 id="modal-edit-title" class="text-xl font-black text-slate-900">Editar empréstimo</h2>
+                        <p class="mt-1 text-sm leading-relaxed text-slate-500">O total do contrato será recalculado (parcela × quantidade).</p>
+                    </div>
+                    <button type="button" onclick="closeEditModal()" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" aria-label="Fechar">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="edit-id">
+                <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Nome</label>
+                <input type="text" id="edit-nome" class="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25">
+                <div class="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Valor parcela</label>
+                        <input type="number" id="edit-vlr" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" step="0.01">
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Total parcelas</label>
+                        <input type="number" id="edit-parc-total" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" min="1">
+                    </div>
+                </div>
+                <div class="mb-6 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Faltam pagar</label>
+                        <input type="number" id="edit-faltam" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25" min="0">
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Início (1ª parcela)</label>
+                        <input type="date" id="edit-venc" class="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/25">
+                    </div>
+                </div>
+                <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                    <button type="button" onclick="closeEditModal()" class="flex-1 rounded-xl border border-slate-200 py-3.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">Cancelar</button>
+                    <button type="button" onclick="salvarEdicao()" class="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-black text-white shadow-md shadow-indigo-200/50 transition hover:from-indigo-500 hover:to-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Salvar alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal excluir -->
+    <div id="modal-delete" class="fixed inset-0 z-[100] hidden p-0 sm:p-4 bg-slate-950/55 backdrop-blur-md" role="dialog" aria-modal="true">
+        <div class="relative w-full max-h-[90vh] overflow-y-auto rounded-t-[1.75rem] border border-slate-200/90 bg-white shadow-2xl sm:max-w-md sm:rounded-3xl" onclick="event.stopPropagation()">
+            <div class="h-1.5 w-full rounded-t-[1.75rem] bg-gradient-to-r from-rose-400 to-orange-400 sm:rounded-t-3xl"></div>
+            <div class="p-6 text-center sm:p-8">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 ring-4 ring-rose-100/80">
+                    <i data-lucide="trash-2" class="h-8 w-8"></i>
+                </div>
+                <h2 class="text-xl font-black text-slate-900">Excluir registro?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-slate-500" id="delete-message">Esta ação não pode ser desfeita.</p>
+                <input type="hidden" id="delete-id">
+                <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row">
+                    <button type="button" onclick="closeDeleteModal()" class="flex-1 rounded-xl border border-slate-200 py-3.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">Cancelar</button>
+                    <button type="button" onclick="executarExclusao()" class="flex-1 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 py-3.5 text-sm font-black text-white shadow-md shadow-rose-200/50 transition hover:from-rose-500 hover:to-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2">Excluir</button>
+                </div>
             </div>
         </div>
     </div>
@@ -120,6 +232,28 @@
     <script>
         lucide.createIcons();
         let db = [];
+
+        function esc(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        const modalFlex = ['flex', 'items-end', 'justify-center', 'sm:items-center'];
+
+        function openModal(el) {
+            el.classList.remove('hidden');
+            modalFlex.forEach(c => el.classList.add(c));
+            document.body.classList.add('overflow-hidden');
+            lucide.createIcons();
+        }
+        function closeModal(el) {
+            el.classList.add('hidden');
+            modalFlex.forEach(c => el.classList.remove(c));
+            document.body.classList.remove('overflow-hidden');
+        }
 
         async function save() {
             const r = await fetch('/api/loans', {
@@ -153,7 +287,6 @@
             }
         }
 
-        // Formatação de data amigável
         function formatBr(date) {
             if (!date) return '---';
             return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
@@ -167,78 +300,229 @@
             return data;
         }
 
+        function openEditModal(id) {
+            const item = db.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('edit-id').value = String(id);
+            document.getElementById('edit-nome').value = item.nome;
+            document.getElementById('edit-vlr').value = item.vlrParc;
+            document.getElementById('edit-parc-total').value = item.parcelasTotais;
+            document.getElementById('edit-faltam').value = item.faltam;
+            document.getElementById('edit-venc').value = item.vencOriginal;
+            openModal(document.getElementById('modal-edit'));
+        }
+
+        function closeEditModal() {
+            closeModal(document.getElementById('modal-edit'));
+        }
+
+        async function salvarEdicao() {
+            const id = parseInt(document.getElementById('edit-id').value, 10);
+            const nome = document.getElementById('edit-nome').value.trim();
+            const vlr = parseFloat(document.getElementById('edit-vlr').value);
+            const parcTotal = parseInt(document.getElementById('edit-parc-total').value, 10);
+            let faltam = parseInt(document.getElementById('edit-faltam').value, 10);
+            const venc = document.getElementById('edit-venc').value;
+            if (!nome || isNaN(vlr) || isNaN(parcTotal) || parcTotal < 1 || !venc) {
+                return alert('Preencha os campos corretamente.');
+            }
+            if (isNaN(faltam) || faltam < 0) faltam = 0;
+            if (faltam > parcTotal) faltam = parcTotal;
+
+            const idx = db.findIndex(i => i.id === id);
+            if (idx === -1) return;
+
+            const prev = { ...db[idx] };
+            db[idx].nome = nome;
+            db[idx].vlrParc = vlr;
+            db[idx].parcelasTotais = parcTotal;
+            db[idx].faltam = faltam;
+            db[idx].vencOriginal = venc;
+            db[idx].original = vlr * parcTotal;
+
+            try {
+                await save();
+            } catch (e) {
+                db[idx] = prev;
+                return alert(e.message || String(e));
+            }
+            closeEditModal();
+            render();
+        }
+
+        function openDeleteModal(id) {
+            const item = db.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('delete-id').value = String(id);
+            document.getElementById('delete-message').innerHTML =
+                'Remover <span class="font-bold text-slate-800">' + esc(item.nome) + '</span>? Não dá para desfazer.';
+            openModal(document.getElementById('modal-delete'));
+        }
+
+        function closeDeleteModal() {
+            closeModal(document.getElementById('modal-delete'));
+        }
+
+        async function executarExclusao() {
+            const id = parseInt(document.getElementById('delete-id').value, 10);
+            const prev = db.slice();
+            db = db.filter(i => i.id !== id);
+            try {
+                await save();
+            } catch (e) {
+                db = prev;
+                closeDeleteModal();
+                return alert(e.message || String(e));
+            }
+            closeDeleteModal();
+            render();
+        }
+
+        document.getElementById('modal-edit').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+        document.getElementById('modal-delete').addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+                closeDeleteModal();
+            }
+        });
+
+        const BADGE_Q = 'inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600';
+        const BADGE_P = 'inline-flex items-center rounded-lg bg-rose-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-rose-700';
+        const BADGE_OK = 'inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700';
+        const BTN_ICON = 'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 hover:shadow active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1';
+        const BTN_DANG = 'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 shadow-sm transition hover:bg-rose-100 hover:border-rose-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-1';
+
         function render() {
             const tableDash = document.getElementById('tableDash');
             const manageGrid = document.getElementById('manageGrid');
+            const emptyHint = document.getElementById('tableDash-empty');
             tableDash.innerHTML = '';
             manageGrid.innerHTML = '';
 
             const hoje = new Date();
-            hoje.setHours(0,0,0,0);
-            
+            hoje.setHours(0, 0, 0, 0);
+
             let totalFalta = 0, totalPago = 0, totalMes = 0, pendentes = 0;
 
-            db.forEach(item => {
+            if (db.length === 0) {
+                emptyHint.classList.remove('hidden');
+                emptyHint.classList.add('flex');
+            } else {
+                emptyHint.classList.add('hidden');
+                emptyHint.classList.remove('flex');
+            }
+
+            db.forEach((item, idx) => {
                 const proxVenc = calcularProximoVencimento(item.vencOriginal, item.parcelasTotais, item.faltam);
                 const saldo = item.vlrParc * item.faltam;
                 totalFalta += saldo;
                 totalPago += (item.original - saldo);
 
                 let isPendente = proxVenc && proxVenc < hoje && item.faltam > 0;
-                if(isPendente) pendentes++;
-                if(proxVenc && proxVenc.getMonth() === hoje.getMonth() && proxVenc.getFullYear() === hoje.getFullYear()) {
+                if (isPendente) pendentes++;
+                if (proxVenc && proxVenc.getMonth() === hoje.getMonth() && proxVenc.getFullYear() === hoje.getFullYear() && item.faltam > 0) {
                     totalMes += item.vlrParc;
                 }
 
-                if(item.faltam > 0) {
-                    tableDash.innerHTML += `
-                        <tr class="hover:bg-slate-50">
-                            <td class="py-4 font-bold text-slate-800">${item.nome}</td>
-                            <td class="py-4 text-slate-400">${formatBr(item.vencOriginal)}</td>
-                            <td class="py-4 text-slate-500 font-bold">R$ ${item.vlrParc.toFixed(2)}</td>
-                            <td class="py-4 text-center font-extrabold text-slate-700">${item.faltam}</td>
-                            <td class="py-4">${isPendente ? '<span class="badge-pendente">Atrasado</span>' : '<span class="badge-em-dia">Em dia</span>'}</td>
-                            <td class="py-4 font-black text-indigo-600">R$ ${saldo.toFixed(2)}</td>
-                            <td class="py-4 ${isPendente ? 'text-rose-500' : 'text-slate-500'} font-bold">${proxVenc ? proxVenc.toLocaleDateString('pt-BR') : '---'}</td>
-                        </tr>
-                    `;
-                }
+                const quitado = item.faltam <= 0;
+                const statusHtml = quitado
+                    ? `<span class="${BADGE_Q}">Quitado</span>`
+                    : (isPendente ? `<span class="${BADGE_P}">Atrasado</span>` : `<span class="${BADGE_OK}">Em dia</span>`);
+
+                const proxStr = quitado ? '—' : (proxVenc ? proxVenc.toLocaleDateString('pt-BR') : '—');
+                const saldoStr = quitado ? '—' : `R$ ${saldo.toFixed(2)}`;
+                const faltamStr = quitado ? '0' : String(item.faltam);
+                const zebra = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
+
+                tableDash.innerHTML += `
+                    <tr class="${zebra} transition hover:bg-indigo-50/60">
+                        <td class="whitespace-nowrap px-4 py-4 pl-5 font-bold text-slate-900">${esc(item.nome)}</td>
+                        <td class="whitespace-nowrap px-4 py-4 text-slate-600">${formatBr(item.vencOriginal)}</td>
+                        <td class="whitespace-nowrap px-4 py-4 font-semibold tabular-nums text-slate-700">R$ ${item.vlrParc.toFixed(2)}</td>
+                        <td class="whitespace-nowrap px-4 py-4 text-center font-extrabold tabular-nums text-slate-800">${faltamStr}</td>
+                        <td class="whitespace-nowrap px-4 py-4">${statusHtml}</td>
+                        <td class="whitespace-nowrap px-4 py-4 font-black tabular-nums ${quitado ? 'text-slate-400' : 'text-indigo-600'}">${saldoStr}</td>
+                        <td class="whitespace-nowrap px-4 py-4 font-semibold tabular-nums ${!quitado && isPendente ? 'text-rose-600' : 'text-slate-600'}">${proxStr}</td>
+                        <td class="whitespace-nowrap px-4 py-4 pr-5 text-right">
+                            <div class="inline-flex items-center justify-end gap-2">
+                                <button type="button" onclick="openEditModal(${item.id})" class="${BTN_ICON}" title="Editar">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                </button>
+                                <button type="button" onclick="openDeleteModal(${item.id})" class="${BTN_DANG}" title="Excluir">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                const cardRing = !quitado && isPendente
+                    ? 'border-rose-200/90 ring-2 ring-rose-100 shadow-lg shadow-rose-100/40'
+                    : 'border-slate-200/90 hover:border-indigo-200/80 hover:shadow-lg hover:shadow-indigo-100/30';
 
                 manageGrid.innerHTML += `
-                    <div class="card ${isPendente ? 'border-rose-200 ring-1 ring-rose-100' : ''}">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="font-black text-slate-800 text-lg">${item.nome}</h4>
-                            ${isPendente ? '<span class="badge-pendente animate-pulse">Pagar Agora</span>' : ''}
+                    <article class="flex flex-col rounded-2xl border bg-white p-5 shadow-md transition ${cardRing}">
+                        <div class="mb-4 flex items-start justify-between gap-3">
+                            <h3 class="text-lg font-black leading-snug text-slate-900">${esc(item.nome)}</h3>
+                            ${!quitado && isPendente ? '<span class="' + BADGE_P + ' shrink-0 animate-pulse">Urgente</span>' : ''}
+                            ${quitado ? '<span class="' + BADGE_Q + ' shrink-0">Quitado</span>' : ''}
                         </div>
-                        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
-                            <button onclick="changeParc(${item.id}, -1)" class="w-12 h-12 bg-rose-500 text-white rounded-xl font-black shadow-lg shadow-rose-100 active:scale-95">-</button>
-                            <div class="text-center">
-                                <span class="block text-[10px] text-slate-400 font-bold uppercase">Restantes</span>
-                                <span class="font-black text-3xl text-slate-800">${item.faltam}</span>
+                        <div class="mb-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50 to-indigo-50/40 p-4">
+                            ${quitado
+                                ? '<button type="button" disabled class="flex h-12 w-12 shrink-0 cursor-not-allowed items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-400">−</button>'
+                                : `<button type="button" onclick="changeParc(${item.id}, -1)" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-lg font-black text-white shadow-lg shadow-rose-200/60 transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">−</button>`}
+                            <div class="min-w-0 px-2 text-center">
+                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Restantes</span>
+                                <span class="font-black tabular-nums text-3xl text-slate-900">${item.faltam}</span>
                             </div>
-                            <button onclick="changeParc(${item.id}, 1)" class="w-12 h-12 bg-emerald-500 text-white rounded-xl font-black shadow-lg shadow-emerald-100 active:scale-95">+</button>
+                            ${quitado
+                                ? '<button type="button" disabled class="flex h-12 w-12 shrink-0 cursor-not-allowed items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-400">+</button>'
+                                : `<button type="button" onclick="changeParc(${item.id}, 1)" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-lg font-black text-white shadow-lg shadow-emerald-200/60 transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">+</button>`}
                         </div>
-                        <div class="space-y-1 text-[11px] font-bold text-slate-400 uppercase">
-                            <div class="flex justify-between"><span>Início:</span> <span class="text-slate-600">${formatBr(item.vencOriginal)}</span></div>
-                            <div class="flex justify-between"><span>Próxima:</span> <span class="${isPendente ? 'text-rose-500' : 'text-indigo-500'}">${proxVenc ? proxVenc.toLocaleDateString('pt-BR') : 'Finalizado'}</span></div>
+                        <dl class="mb-4 space-y-2 border-b border-slate-100 pb-4 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                            <div class="flex justify-between gap-2"><dt>Início</dt><dd class="normal-case font-semibold text-slate-700">${formatBr(item.vencOriginal)}</dd></div>
+                            <div class="flex justify-between gap-2"><dt>Próxima</dt><dd class="normal-case font-semibold ${!quitado && isPendente ? 'text-rose-600' : 'text-indigo-600'}">${proxVenc && !quitado ? proxVenc.toLocaleDateString('pt-BR') : '—'}</dd></div>
+                        </dl>
+                        <div class="mt-auto flex gap-2">
+                            <button type="button" onclick="openEditModal(${item.id})" class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                                <i data-lucide="pencil" class="h-4 w-4"></i> Editar
+                            </button>
+                            <button type="button" onclick="openDeleteModal(${item.id})" class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+                                <i data-lucide="trash-2" class="h-4 w-4"></i> Excluir
+                            </button>
                         </div>
-                    </div>
+                    </article>
                 `;
             });
 
-            document.getElementById('kpi-total-falta').innerText = `R$ ${totalFalta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('kpi-mes-atual').innerText = `R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-total-falta').innerText = `R$ ${totalFalta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('kpi-mes-atual').innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             document.getElementById('kpi-pendentes-count').innerText = pendentes;
-            document.getElementById('kpi-pago-total').innerText = `R$ ${totalPago.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-pago-total').innerText = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             lucide.createIcons();
+
+            document.querySelectorAll('.btn-tab').forEach(btn => {
+                btn.classList.remove('bg-indigo-50', 'text-indigo-600', 'shadow-sm');
+                if (!btn.id.startsWith('tab-add')) btn.classList.add('text-slate-500');
+            });
+            const active = document.querySelector('.btn-tab.active');
+            if (active && active.id !== 'tab-add') {
+                active.classList.add('bg-indigo-50', 'text-indigo-600', 'shadow-sm');
+                active.classList.remove('text-slate-500');
+            }
         }
 
         async function adicionarCliente() {
-            const nome = document.getElementById('new-nome').value;
+            const nome = document.getElementById('new-nome').value.trim();
             const vlr = parseFloat(document.getElementById('new-vlr').value);
-            const parc = parseInt(document.getElementById('new-parc').value);
+            const parc = parseInt(document.getElementById('new-parc').value, 10);
             const venc = document.getElementById('new-venc').value;
-            if(!nome || isNaN(vlr) || !venc) return alert("Preencha os campos corretamente!");
+            if (!nome || isNaN(vlr) || !venc || isNaN(parc) || parc < 1) return alert('Preencha os campos corretamente!');
             db.push({ id: Date.now(), nome, vlrParc: vlr, faltam: parc, parcelasTotais: parc, vencOriginal: venc, original: (vlr * parc) });
             try {
                 await save();
@@ -246,7 +530,7 @@
                 db.pop();
                 return alert(e.message || String(e));
             }
-            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.querySelectorAll('#view-add input').forEach(i => { i.value = ''; });
             showTab('dash');
         }
 
@@ -278,7 +562,7 @@
             try {
                 await loadDb();
             } catch (e) {
-                alert('Erro ao conectar à API: ' + (e.message || e) + '\n\nLocal: npm start. Cloudflare: npm run cf:dev ou verifique D1 + deploy.');
+                alert('Erro ao conectar à API: ' + (e.message || e) + '\n\nLocal: npm start. Cloudflare: verifique D1 + deploy.');
                 return;
             }
             render();

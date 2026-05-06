@@ -1,11 +1,13 @@
 # Cloudflare Pages + D1 (banco: fernando)
+# O campo "name" deve ser o nome EXATO do projeto em Workers & Pages (ex.: gestor-financeiro-cgh).
 # Migrações: npm run cf:d1:migrate
 # Deploy: npm run cf:deploy
 
-name = "gestor-financeiro"
+name = "gestor-financeiro-cgh"
 compatibility_date = "2024-11-01"
 
+# Nome do binding = variável no env (ex.: binding "fernando" → env.fernando). Igual ao painel Pages.
 [[d1_databases]]
-binding = "DB"
+binding = "fernando"
 database_name = "fernando"
 database_id = "c994c6ac-f0f9-4368-b2e5-f2b1bc250803"
